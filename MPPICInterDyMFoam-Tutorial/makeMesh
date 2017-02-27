@@ -1,0 +1,14 @@
+rm -r constant/polyMesh
+blockMesh
+surfaceFeatureExtract
+snappyHexMesh -overwrite
+createBaffles -overwrite
+mergeOrSplitBaffles -split -overwrite
+#setFields to set alpha.water to 0.066m
+#setFields
+
+#topoSet to create a set for AMI faces
+#need to place AMI faces on one processor to run in parallel
+#Therefore use topoSet to put AMI faces into a set
+#topoSet -dict topoSetDict.AMIFaces
+

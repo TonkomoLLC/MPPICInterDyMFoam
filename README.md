@@ -9,7 +9,7 @@ and a single momentum equation is solved.
 
 It includes MRF and an MPPIC cloud.
 
-This sovler compiles with OpenFOAM-v1612+.
+This sovler compiles with OpenFOAM-v1706.
 
 Note that AMI patches must be on the same processor when running in parallel.
 This can be accomplished with topoSet and decomposePar.

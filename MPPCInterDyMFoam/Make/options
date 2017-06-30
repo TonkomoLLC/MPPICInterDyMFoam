@@ -1,9 +1,11 @@
 interFoamPath = $(FOAM_SOLVERS)/multiphase/interFoam
+VoFPath  = $(FOAM_SOLVERS)/multiphase/VoF
 
 EXE_INC =  \
     -I. \
     -I./IncompressibleTwoPhaseMixtureTurbulenceModels/lnInclude \
     -I$(interFoamPath) \
+    -I$(VoFPath) \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/fvOptions/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
@@ -36,7 +38,7 @@ EXE_LIBS = \
     -lmeshTools \
     -llagrangian \
     -llagrangianIntermediate \
-    -lthermophysicalFunctions \
+    -lthermophysicalProperties \
     -lspecie \
     -lincompressibleTransportModels \
     -limmiscibleIncompressibleTwoPhaseMixture \
@@ -46,3 +48,4 @@ EXE_LIBS = \
     -lsurfaceFilmModels \
     -lfvOptions \
     -lCompressibleTwoPhaseMixtureTurbulenceModels
+

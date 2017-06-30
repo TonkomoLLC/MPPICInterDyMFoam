@@ -1,5 +1,5 @@
 # MPPICInterDyMFoam
-MPPICInterFoam extended to include AMI (OpenFOAM-v1612+)
+MPPICInterFoam extended to include AMI (OpenFOAM-v1706)
 
 Solver for 2 incompressible, isothermal immiscible fluids using a VOF
 (volume of fluid) phase-fraction based interface capturing approach,

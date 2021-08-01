@@ -1,5 +1,5 @@
 # MPPICInterDyMFoam
-MPPICInterFoam extended to include AMI (OpenFOAM-v1612+)
+MPPICInterFoam extended to include AMI (OpenFOAM-v2106)
 
 Solver for 2 incompressible, isothermal immiscible fluids using a VOF
 (volume of fluid) phase-fraction based interface capturing approach,
@@ -9,7 +9,7 @@ and a single momentum equation is solved.
 
 It includes MRF and an MPPIC cloud.
 
-This sovler compiles with OpenFOAM-v1612+.
+This sovler compiles with OpenFOAM-v2106.
 
 Note that AMI patches must be on the same processor when running in parallel.
 This can be accomplished with topoSet and decomposePar.

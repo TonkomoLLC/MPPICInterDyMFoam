@@ -130,6 +130,18 @@ subModels
                 e    0.97;
                 mu   0.09;
             }
+            AMI1
+            {
+                type rebound;
+                e    0.97;
+                mu   0.09;
+            }
+            AMI2
+            {
+                type rebound;
+                e    0.97;
+                mu   0.09;
+            }
         );
     }
 

@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     #include "createFields.H"
     #include "createAlphaFluxes.H"
     #include "createFvOptions.H"
-    #include "correctPhi.H"
+    //#include "initCorrectPhi.H"
     #include "createUfIfPresent.H"
 
     turbulence->validate();

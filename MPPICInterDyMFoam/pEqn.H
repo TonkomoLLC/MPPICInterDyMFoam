@@ -1,15 +1,22 @@
 {
+	rAUc = 1.0/UEqn.A();
     volVectorField HbyA(constrainHbyA(rAUc*UEqn.H(), U, p_rgh));
 
     surfaceScalarField phiHbyA
     (
         "phiHbyA",
         fvc::flux(HbyA)
-      + alphacf*fvc::interpolate(rho*rAUc)*fvc::ddtCorr(U, phi)
+      + alphacf*fvc::interpolate(rho*rAUc)*fvc::ddtCorr(U, phi, Uf)
     );
 
     MRF.makeRelative(phiHbyA);
-    adjustPhi(phiHbyA, U, p_rgh);
+
+    if (p_rgh.needReference())
+    {
+        fvc::makeRelative(phiHbyA, U);		//******added*****//
+		adjustPhi(phiHbyA, U, p_rgh);
+        fvc::makeAbsolute(phiHbyA, U);		//******added*****//
+    }
 
     surfaceScalarField phig
     (
@@ -75,5 +82,10 @@
             pRefValue - getRefCellValue(p, pRefCell)
         );
         p_rgh = p - rho*gh;
+    }
+
+    if (!correctPhi)
+    {
+        rAUc.clear();
     }
 }

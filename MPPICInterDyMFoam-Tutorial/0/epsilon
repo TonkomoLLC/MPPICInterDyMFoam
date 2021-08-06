@@ -26,18 +26,6 @@ boundaryField
         value           $internalField;
     }
 
-    inlet
-    {
-        type            fixedValue;
-        value           $internalField;
-    }
-
-    outlet
-    {
-        type            inletOutlet;
-        inletValue      $internalField;
-        value           $internalField;
-    }
 
     "AMI.*"
     {

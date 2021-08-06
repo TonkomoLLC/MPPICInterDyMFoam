@@ -21,47 +21,43 @@ solution
     coupled         true;
     transient       yes;
     cellValueSourceCorrection off;
-
-    maxCo           0.25; //1.0;
-
-    interpolationSchemes
-    {
-        rho         cell;
-        U           cellPoint;
-        mu          cell;
-        gradAlpha   cellPoint;
-    }
+    maxCo           0.3;
 
     averagingMethod dual;
-
-    integrationSchemes
-    {
-        U               Euler;
-    }
 
     sourceTerms
     {
         schemes
         {
-            U           semiImplicit 1;
+            U       semiImplicit 1;
         }
+    }
+
+    interpolationSchemes
+    {
+        rho             cell;
+        U               cellPoint;
+        mu              cell;
+        rho             cell;
+        gradAlpha       cell;
+    }
+
+    integrationSchemes
+    {
+        U               Euler;
     }
 }
 
 constantProperties
 {
     rho0            700;
-    alphaMax        0.9;
+    alphaMax        0.999;
 }
 
 subModels
 {
     particleForces
     {
-        WenYuDrag
-        {
-            alphac      alphac;
-        }
         gravity;
         interface
         {
@@ -94,60 +90,23 @@ subModels
 
     dispersionModel none;
 
-    patchInteractionModel localInteraction;
+    patchInteractionModel standardWallInteraction;
 
-    localInteractionCoeffs
+    standardWallInteractionCoeffs
     {
-        patches
-        (
-            vessel
-            {
-                type rebound;
-                e    0.97;
-                mu   0.09;
-            }
-            shaftStatic
-            {
-                type rebound;
-                e    0.97;
-                mu   0.09;
-            }
-            shaftRotating
-            {
-                type rebound;
-                e    0.97;
-                mu   0.09;
-            }
-            inlet
-            {
-                type rebound;
-                e    0.97;
-                mu   0.09;
-            }
-            outlet
-            {
-                type rebound;
-                e    0.97;
-                mu   0.09;
-            }
-            AMI1
-            {
-                type rebound;
-                e    0.97;
-                mu   0.09;
-            }
-            AMI2
-            {
-                type rebound;
-                e    0.97;
-                mu   0.09;
-            }
-        );
+        type        rebound;    //  stick, escape
+        e           0.6;        //  elasticity coeff
+        mu          0.09;       //  tan coeff
+        UrMax       1e-4;       //  relative U of particle after collision
+                                //  bellow which the particle is considered
+                                //  at the same U as the patch and deleted
     }
 
     heatTransferModel none;
 
     surfaceFilmModel none;
+
+    stochasticCollisionModel none;
 
     packingModel explicit;
 
@@ -155,62 +114,42 @@ subModels
     {
         particleStressModel
         {
-            type HarrisCrighton;
-            alphaPacked 0.65;
-            pSolid 10.0;
-            beta 2.0;
-            eps 1.0e-7;
+            type        HarrisCrighton;
+            alphaPacked 0.6;
+            pSolid      8.0;
+            beta        2;
+            eps         1.0e-7;
         }
         correctionLimitingMethod
         {
-            type absolute;
-            e 0.9;
+            type        absolute;
+            e           0.7;
         }
     }
 
-    implicitCoeffs
-    {
-        alphaMin 0.0001;
-        rhoMin 1.0;
-        applyLimiting true;
-        applyGravity false;
-        particleStressModel
-        {
-            type HarrisCrighton;
-            alphaPacked 0.65;
-            pSolid 5.0;
-            beta 2.0;
-            eps 1.0e-2;
-        }
-    }
-
-    dampingModel none; //relaxation;
+    dampingModel none;
 
     relaxationCoeffs
     {
         timeScaleModel
         {
-            type nonEquilibrium;
-            alphaPacked 0.65;
-            e 0.9;
+            type        isotropic;
+            alphaPacked 0.6;
+            e           0.88;
         }
     }
 
-    isotropyModel stochastic;
+    isotropyModel none;
 
     stochasticCoeffs
     {
         timeScaleModel
         {
             type isotropic;
-            alphaPacked 0.65;
-            e 0.9;
+            alphaPacked 0.6;
+            e 0.8;
         }
     }
-
-    stochasticCollisionModel none;
-
-    radiation off;
 }
 
 

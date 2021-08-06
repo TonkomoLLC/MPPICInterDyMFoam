@@ -32,7 +32,7 @@ Description
     The momentum and other fluid properties are of the "mixture" and a single
     momentum equation is solved.
 
-    It includes MRF and an MPPIC cloud.
+    It includes MRF, dynamic mesh, and an MPPIC cloud.
 
     Turbulence modelling is generic, i.e. laminar, RAS or LES may be selected.
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     (
         "Solver for two incompressible, isothermal immiscible fluids using"
         " VOF phase-fraction based interface capturing.\n"
-        "Includes MRF and an MPPIC cloud."
+        "Includes MRF, dynamic mesh, and an MPPIC cloud."
     );
 
     #include "postProcess.H"
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     #include "createFields.H"
     #include "createAlphaFluxes.H"
     #include "createFvOptions.H"
-    //#include "initCorrectPhi.H"
+    #include "initCorrectPhi.H"
     #include "createUfIfPresent.H"
 
     turbulence->validate();
@@ -186,7 +186,17 @@ int main(int argc, char *argv[])
                         // from the mapped surface velocity
                         phi = mesh.Sf() & Uf();
 
-                        #include "correctPhi.H"
+						CorrectPhi
+						(
+							U,
+							phi,
+							p_rgh,
+							surfaceScalarField("rAUf", fvc::interpolate(rAU())),
+							geometricZeroField(),
+							pimple
+						);
+
+						#include "continuityErrs.H"
 
                         // Make the flux relative to the mesh motion
                         fvc::makeRelative(phi, U);

@@ -1,19 +1,19 @@
-tmp<volScalarField> rAUc;
+tmp<volScalarField> rAU;
 
 if (correctPhi)
 {
-    rAUc = new volScalarField
+    rAU = new volScalarField
     (
         IOobject
         (
-            "rAUc",
+            "rAU",
             runTime.timeName(),
             mesh,
             IOobject::READ_IF_PRESENT,
             IOobject::AUTO_WRITE
         ),
         mesh,
-        dimensionedScalar("rAUc", dimTime/dimDensity, 1)
+        dimensionedScalar("rAU", dimTime/dimDensity, 1)
     );
 
     #include "correctPhi.H"

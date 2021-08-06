@@ -1,5 +1,5 @@
 {
-	rAUc = 1.0/UEqn.A();
+    rAUc = 1.0/UEqn.A();
     volVectorField HbyA(constrainHbyA(rAUc*UEqn.H(), U, p_rgh));
 
     surfaceScalarField phiHbyA
@@ -13,9 +13,9 @@
 
     if (p_rgh.needReference())
     {
-        fvc::makeRelative(phiHbyA, U);		//******added*****//
-		adjustPhi(phiHbyA, U, p_rgh);
-        fvc::makeAbsolute(phiHbyA, U);		//******added*****//
+        fvc::makeRelative(phiHbyA, U);        //******added*****//
+        adjustPhi(phiHbyA, U, p_rgh);
+        fvc::makeAbsolute(phiHbyA, U);        //******added*****//
     }
 
     surfaceScalarField phig

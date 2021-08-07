@@ -13,3 +13,7 @@ This sovler compiles with OpenFOAM-v2106.
 
 Note that AMI patches must be on the same processor when running in parallel.
 This can be accomplished with topoSet and decomposePar.
+
+# Acknowledgements
+
+Thank you to @skyopener for submitting fixes to issue #1.

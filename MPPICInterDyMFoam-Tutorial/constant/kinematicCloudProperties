@@ -50,7 +50,7 @@ solution
 
 constantProperties
 {
-    rho0            700;
+    rho0            1700;
     alphaMax        0.999;
 }
 
@@ -58,6 +58,7 @@ subModels
 {
     particleForces
     {
+        sphereDrag;
         gravity;
         interface
         {
@@ -140,16 +141,6 @@ subModels
     }
 
     isotropyModel none;
-
-    stochasticCoeffs
-    {
-        timeScaleModel
-        {
-            type isotropic;
-            alphaPacked 0.6;
-            e 0.8;
-        }
-    }
 }
 
 

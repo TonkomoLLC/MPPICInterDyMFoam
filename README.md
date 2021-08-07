@@ -16,4 +16,4 @@ This can be accomplished with topoSet and decomposePar.
 
 # Acknowledgements
 
-Thank you to @skyopener for submitting fixes to issue #1.
+Thank you to [@skyopener](https://github.com/skyopener) for submitting fixes to issue #1.

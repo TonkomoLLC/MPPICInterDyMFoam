@@ -1,40 +1,46 @@
 {
-    rAU = 1.0/UEqn.A();
-    surfaceScalarField rAUf("rAUf", fvc::interpolate(rAU));
-    volVectorField HbyA(constrainHbyA(rAU*UEqn.H(), U, p_rgh));
+    rAUc = 1.0/UEqn.A();
+    volVectorField HbyA(constrainHbyA(rAUc*UEqn.H(), U, p_rgh));
+
     surfaceScalarField phiHbyA
     (
         "phiHbyA",
         fvc::flux(HbyA)
-      + fvc::interpolate(rho*rAU)*fvc::ddtCorr(U, Uf)
+      + alphacf*fvc::interpolate(rho*rAUc)*fvc::ddtCorr(U, phi, Uf)
     );
+
     MRF.makeRelative(phiHbyA);
 
     if (p_rgh.needReference())
     {
-        fvc::makeRelative(phiHbyA, U);
+        fvc::makeRelative(phiHbyA, U);        //******added*****//
         adjustPhi(phiHbyA, U, p_rgh);
-        fvc::makeAbsolute(phiHbyA, U);
+        fvc::makeAbsolute(phiHbyA, U);        //******added*****//
     }
 
     surfaceScalarField phig
     (
+        phicForces +
         (
-            mixture.surfaceTensionForce()
+            fvc::interpolate(mixture.sigmaK())*fvc::snGrad(alpha1)
           - ghf*fvc::snGrad(rho)
-        )*rAUf*mesh.magSf()
+        )*rAUcf*mesh.magSf()
     );
 
     phiHbyA += phig;
 
     // Update the pressure BCs to ensure flux consistency
-    constrainPressure(p_rgh, U, phiHbyA, rAUf);
+    constrainPressure(p_rgh, U, phiHbyA, rAUcf, MRF);
 
     while (pimple.correctNonOrthogonal())
     {
+        surfaceScalarField Dp("Dp", alphacf*rAUcf);
+
         fvScalarMatrix p_rghEqn
         (
-            fvm::laplacian(rAUf, p_rgh) == fvc::div(phiHbyA)
+            fvm::laplacian(Dp, p_rgh)
+         ==
+            fvc::ddt(alphac) + fvc::div(alphacf*phiHbyA)
         );
 
         p_rghEqn.setReference(pRefCell, getRefCellValue(p_rgh, pRefCell));
@@ -43,23 +49,24 @@
 
         if (pimple.finalNonOrthogonalIter())
         {
-            phi = phiHbyA - p_rghEqn.flux();
+            phi = phiHbyA - p_rghEqn.flux()/alphacf;
 
             p_rgh.relax();
 
-            U = HbyA + rAU*fvc::reconstruct((phig - p_rghEqn.flux())/rAUf);
+            U =
+                HbyA
+              + rAUc*fvc::reconstruct((phig - p_rghEqn.flux()/alphacf)/rAUcf);
+
             U.correctBoundaryConditions();
+
             fvOptions.correct(U);
         }
     }
 
     #include "continuityErrs.H"
 
-    {
-        Uf = fvc::interpolate(U);
-        surfaceVectorField n(mesh.Sf()/mesh.magSf());
-        Uf += n*(phi/mesh.magSf() - (n & Uf));
-    }
+    // Correct Uf if the mesh is moving
+    fvc::correctUf(Uf, U, phi);
 
     // Make the fluxes relative to the mesh motion
     fvc::makeRelative(phi, U);
@@ -75,5 +82,10 @@
             pRefValue - getRefCellValue(p, pRefCell)
         );
         p_rgh = p - rho*gh;
+    }
+
+    if (!correctPhi)
+    {
+        rAUc.clear();
     }
 }

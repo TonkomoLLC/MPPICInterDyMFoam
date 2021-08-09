@@ -32,13 +32,13 @@ wall
     }
     inlet
     {
-        type            patch;
+        type            wall;
         nFaces          12;
         startFace       504556;
     }
     outlet
     {
-        type            patch;
+        type            wall;
         nFaces          64;
         startFace       504568;
     }

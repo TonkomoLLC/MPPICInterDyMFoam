@@ -28,14 +28,14 @@ boundaryField
     }
     inlet
     {
-        type           fixedValue;
-        value          uniform (0 0 -0.1);
+        type            fixedValue;
+        value           uniform (0 0 0);
     }
 
     outlet
     {
-        type            pressureInletOutletVelocity;
-        value           $internalField;
+        type            fixedValue;
+        value           uniform (0 0 0);
     }
     shaftRotating
     {

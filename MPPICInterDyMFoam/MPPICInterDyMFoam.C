@@ -2,8 +2,10 @@
   =========                 |
   \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
    \\    /   O peration     |
-    \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+    \\  /    A nd           | www.openfoam.com
      \\/     M anipulation  |
+-------------------------------------------------------------------------------
+    Copyright (C) 2016-2020 OpenCFD Ltd.
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
@@ -25,13 +27,12 @@ Application
     MPPICInterFoam
 
 Description
-    Solver for 2 incompressible, isothermal immiscible fluids using a VOF
-    (volume of fluid) phase-fraction based interface capturing approach,
-    with optional mesh motion and mesh topology changes including adaptive
-    re-meshing.  The momentum and other fluid properties are of the "mixture" 
-    and a single momentum equation is solved.
+    Solver for two incompressible, isothermal immiscible fluids using a VOF
+    (volume of fluid) phase-fraction based interface capturing approach.
+    The momentum and other fluid properties are of the "mixture" and a single
+    momentum equation is solved.
 
-    It includes MRF and an MPPIC cloud.
+    It includes MRF, dynamic mesh, and an MPPIC cloud.
 
     Turbulence modelling is generic, i.e. laminar, RAS or LES may be selected.
 
@@ -40,6 +41,9 @@ Description
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
 #include "CMULES.H"
+#include "EulerDdtScheme.H"
+#include "localEulerDdtScheme.H"
+#include "CrankNicolsonDdtScheme.H"
 #include "subCycle.H"
 
 #include "immiscibleIncompressibleTwoPhaseMixture.H"
@@ -51,46 +55,43 @@ Description
 #include "localEulerDdtScheme.H"
 #include "fvcSmooth.H"
 
-#include "basicKinematicMPPICCloud.H"
+#include "basicKinematicCloud.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 int main(int argc, char *argv[])
 {
-    #include "postProcess.H"
-
-    #include "setRootCase.H"
-    #include "createTime.H"
-    #include "createDynamicFvMesh.H"
-//    #include "createMesh.H"
-    #include "createControl.H"
-    #include "initContinuityErrs.H"
-    #include "createFields.H"
-    #include "createFvOptions.H"
-    #include "createUf.H"
-
-    volScalarField rAU
+    argList::addNote
     (
-        IOobject
-        (
-            "rAU",
-            runTime.timeName(),
-            mesh,
-            IOobject::READ_IF_PRESENT,
-            IOobject::AUTO_WRITE
-        ),
-        mesh,
-        dimensionedScalar("rAUf", dimTime/rho.dimensions(), 1.0)
+        "Solver for two incompressible, isothermal immiscible fluids using"
+        " VOF phase-fraction based interface capturing.\n"
+        "Includes MRF, dynamic mesh, and an MPPIC cloud."
     );
 
+    #include "postProcess.H"
 
-    #include "createTimeControls.H"
+    #include "addCheckCaseOptions.H"
+    #include "setRootCaseLists.H"
+    #include "createTime.H"
+    #include "createDynamicFvMesh.H"
+    //#include "createControl.H"
+    //#include "createTimeControls.H"
+    #include "initContinuityErrs.H"
     #include "createDyMControls.H"
-    #include "correctPhi.H"
-    #include "CourantNo.H"
-    #include "setInitialDeltaT.H"
+    #include "createFields.H"
+    #include "createAlphaFluxes.H"
+    #include "createFvOptions.H"
+    #include "initCorrectPhi.H"
+    #include "createUfIfPresent.H"
 
     turbulence->validate();
+
+    if (!LTS)
+    {
+        #include "readTimeControls.H"
+        #include "CourantNo.H"
+        #include "setInitialDeltaT.H"
+    }
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -98,12 +99,21 @@ int main(int argc, char *argv[])
 
     while (runTime.run())
     {
-        #include "readTimeControls.H"
-        #include "CourantNo.H"
-        #include "alphaCourantNo.H"
-        #include "setDeltaT.H"
+        //#include "readTimeControls.H"
+        #include "readDyMControls.H"
 
-        runTime++;
+        if (LTS)
+        {
+            #include "setRDeltaT.H"
+        }
+        else
+        {
+            #include "CourantNo.H"
+            #include "alphaCourantNo.H"
+            #include "setDeltaT.H"
+        }
+
+        ++runTime;
 
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
@@ -115,7 +125,7 @@ int main(int argc, char *argv[])
         alphac = max(1.0 - kinematicCloud.theta(), alphacMin);
         alphac.correctBoundaryConditions();
 
-         Info<< "Continous phase-1 volume fraction = "
+         Info<< "Continuous phase-1 volume fraction = "
             << alphac.weightedAverage(mesh.Vsc()).value()
             << "  Min(alphac) = " << min(alphac).value()
             << "  Max(alphac) = " << max(alphac).value()
@@ -136,12 +146,7 @@ int main(int argc, char *argv[])
                 mesh
             ),
             mesh,
-            dimensionedVector
-            (
-                "0",
-                cloudSU.dimensions()/dimVolume,
-                vector::zero
-            ),
+            dimensionedVector(cloudSU.dimensions()/dimVolume, Zero),
             zeroGradientFvPatchVectorField::typeName
         );
 
@@ -155,39 +160,54 @@ int main(int argc, char *argv[])
         {
             if (pimple.firstIter() || moveMeshOuterCorrectors)
             {
-                scalar timeBeforeMeshUpdate = runTime.elapsedCpuTime();
+
+                // Store the particle positions
+                kinematicCloud.storeGlobalPositions();
 
                 mesh.update();
 
                 if (mesh.changing())
                 {
-                    Info<< "Execution time for mesh.update() = "
-                        << runTime.elapsedCpuTime() - timeBeforeMeshUpdate
-                        << " s" << endl;
+                    // Do not apply previous time-step mesh compression flux
+                    // if the mesh topology changed
+                    if (mesh.topoChanging())
+                    {
+                        talphaPhi1Corr0.clear();
+                    }
 
                     gh = (g & mesh.C()) - ghRef;
                     ghf = (g & mesh.Cf()) - ghRef;
-                }
 
-                if ((mesh.changing() && correctPhi) || mesh.topoChanging())
-                {
-                    // Calculate absolute flux from the mapped surface velocity
-                    // Note: temporary fix until mapped Uf is assessed
-                    Uf = fvc::interpolate(U);
+                    MRF.update();
 
-                    phi = mesh.Sf() & Uf;
+                    if (correctPhi)
+                    {
+                        // Calculate absolute flux
+                        // from the mapped surface velocity
+                        phi = mesh.Sf() & Uf();
 
-                    #include "correctPhi.H"
+                        CorrectPhi
+                        (
+                            U,
+                            phi,
+                            p_rgh,
+                            surfaceScalarField("rAUf", fvc::interpolate(rAU())),
+                            geometricZeroField(),
+                            pimple
+                        );
 
-                    // Make the flux relative to the mesh motion
-                    fvc::makeRelative(phi, U);
+                        #include "continuityErrs.H"
 
-                    mixture.correct();
-                }
+                        // Make the flux relative to the mesh motion
+                        fvc::makeRelative(phi, U);
 
-                if (mesh.changing() && checkMeshCourantNo)
-                {
-                    #include "meshCourantNo.H"
+                        mixture.correct();
+                    }
+
+                    if (checkMeshCourantNo)
+                    {
+                        #include "meshCourantNo.H"
+                    }
                 }
             }
 
@@ -212,9 +232,8 @@ int main(int argc, char *argv[])
 
         runTime.write();
 
-        Info<< "ExecutionTime = " << runTime.elapsedCpuTime() << " s"
-            << "  ClockTime = " << runTime.elapsedClockTime() << " s"
-            << nl << endl;
+        runTime.printExecutionTime(Info);
+
     }
 
     Info<< "End\n" << endl;

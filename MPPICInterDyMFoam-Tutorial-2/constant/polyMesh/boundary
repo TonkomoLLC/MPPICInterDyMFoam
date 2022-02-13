@@ -1,0 +1,152 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.3.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       polyBoundaryMesh;
+    location    "constant/polyMesh";
+    object      boundary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+10
+(
+    statorWalls
+    {
+        type            wall;
+        inGroups        
+2
+(
+stator
+wall
+)
+;
+        nFaces          1600;
+        startFace       76920;
+    }
+    base
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          680;
+        startFace       78520;
+    }
+    rotorShaft
+    {
+        type            wall;
+        inGroups        
+2
+(
+rotor
+wall
+)
+;
+        nFaces          1600;
+        startFace       79200;
+    }
+    top
+    {
+        type            wall;
+        inGroups        1(wall);
+        nFaces          680;
+        startFace       80800;
+    }
+    AMI_master
+    {
+        type            cyclicAMI;
+        inGroups        
+2
+(
+cyclicAMI
+AMI
+)
+;
+        nFaces          1600;
+        startFace       81480;
+        matchTolerance  0.0001;
+        transform       noOrdering;
+        neighbourPatch  AMI_slave;
+        coupleGroup     AMI;
+    }
+    AMI_slave
+    {
+        type            cyclicAMI;
+        inGroups        
+2
+(
+cyclicAMI
+AMI
+)
+;
+        nFaces          1600;
+        startFace       83080;
+        matchTolerance  0.0001;
+        transform       noOrdering;
+        neighbourPatch  AMI_master;
+        coupleGroup     AMI;
+    }
+    statorBlades_master
+    {
+        type            wall;
+        inGroups        
+3
+(
+stator
+wall
+statorBlades
+)
+;
+        nFaces          640;
+        startFace       84680;
+    }
+    statorBlades_slave
+    {
+        type            wall;
+        inGroups        
+3
+(
+stator
+wall
+statorBlades
+)
+;
+        nFaces          640;
+        startFace       85320;
+    }
+    rotorBlades_master
+    {
+        type            wall;
+        inGroups        
+3
+(
+rotor
+wall
+rotorBlades
+)
+;
+        nFaces          160;
+        startFace       85960;
+    }
+    rotorBlades_slave
+    {
+        type            wall;
+        inGroups        
+3
+(
+rotor
+wall
+rotorBlades
+)
+;
+        nFaces          160;
+        startFace       86120;
+    }
+)
+
+// ************************************************************************* //

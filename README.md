@@ -15,6 +15,10 @@ This solver compiles with OpenFOAM-v2106.
 Note that AMI patches must be on the same processor when running in parallel.
 This can be accomplished with topoSet and decomposePar.
 
+# Tutorial Cases
+
+The tutorial cases show the basic functionality of the solver. Note that in the second tutorial, the particles tend to fall to the bottom of the tank. This may not be interesting, and so feel free to modify the case to your liking.
+
 # Acknowledgments
 
 Thank you to [@skyopener](https://github.com/skyopener) for submitting fixes to [issue #1](https://github.com/TonkomoLLC/MPPICInterDyMFoam/issues/1).

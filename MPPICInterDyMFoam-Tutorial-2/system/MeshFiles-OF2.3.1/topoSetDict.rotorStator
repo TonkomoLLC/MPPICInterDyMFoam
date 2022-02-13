@@ -1,0 +1,112 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Create the rotor blades
+    {
+        name    rotorBlades;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        sourceInfo
+        {
+            box (-0.0001 -0.04 0.04)(0.0001 0.04 0.08);
+        }
+    }
+
+    {
+        name    rotorBlades;
+        type    faceSet;
+        action  add;
+        source  boxToFace;
+        sourceInfo
+        {
+            box (-0.04 -0.0001 0.04)(0.04 0.0001 0.08);
+        }
+    }
+
+    {
+        name    rotorBlades;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        sourceInfo
+        {
+            faceSet rotorBlades;
+        }
+    }
+
+
+    // Create the stator blades
+    {
+        name    statorBlades;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        sourceInfo
+        {
+            box (-0.0001 -1 -1)(0.0001 -0.08 1);
+        }
+    }
+
+    {
+        name    statorBlades;
+        type    faceSet;
+        action  add;
+        source  boxToFace;
+        sourceInfo
+        {
+            box (-0.0001 0.08 -1)(0.0001 1 1);
+        }
+    }
+
+    {
+        name    statorBlades;
+        type    faceSet;
+        action  add;
+        source  boxToFace;
+        sourceInfo
+        {
+            box (-1 -0.0001 -1)(-0.08 0.0001 1);
+        }
+    }
+
+    {
+        name    statorBlades;
+        type    faceSet;
+        action  add;
+        source  boxToFace;
+        sourceInfo
+        {
+            box (0.08 -0.0001 -1)(1 0.0001 1);
+        }
+    }
+
+    {
+        name    statorBlades;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        sourceInfo
+        {
+            faceSet statorBlades;
+        }
+    }
+);
+
+// ************************************************************************* //

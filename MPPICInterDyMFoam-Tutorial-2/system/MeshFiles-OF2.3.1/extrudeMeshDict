@@ -1,0 +1,39 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      extrudeProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+constructFrom patch;
+sourceCase "$FOAM_CASE";
+sourcePatches (extrude);
+exposedPatchName back;
+
+flipNormals false;
+
+extrudeModel        wedge;
+
+nLayers             40;
+
+expansionRatio      1.0;
+
+wedgeCoeffs
+{
+    axisPt          (0 0 0);
+    axis            (0 0 -1);
+    angle           360;
+}
+
+mergeFaces true;
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //

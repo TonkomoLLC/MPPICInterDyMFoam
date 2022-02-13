@@ -1,0 +1,33 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+application=`getApplication`
+
+runApplication blockMesh
+
+runApplication extrudeMesh
+
+echo "Creating AMI patches and rotating zone"
+topoSet -dict system/topoSetDict.AMIRotatingZone                      \
+    > log.topoSetDict.AMIRotatingZone 2>&1
+createBaffles -dict system/createBafflesDict.AMI -overwrite           \
+    > log.createBaffles.AMI 2>&1
+mergeOrSplitBaffles -split -overwrite > log.mergeOrSplitBaffles 2>&1
+
+echo "Creating rotor and stator"
+topoSet -dict system/topoSetDict.rotorStator                          \
+    > log.topoSetDict.rotorStator 2>&1
+createBaffles -dict system/createBafflesDict.rotorStator -overwrite   \
+    > log.createBaffles.rotorStator 2>&1
+
+# Run createPatch with empty dictionary to remove patches with zero faces
+runApplication createPatch -overwrite
+
+cp -r 0.org 0 > /dev/null 2>&1
+
+runApplication $application
+
+# ----------------------------------------------------------------- end-of-file

@@ -1,0 +1,105 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2.1.1                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Create a cellSet of rotating zone
+    {
+        name    rotatingCells;
+        type    cellSet;
+        action  new;
+        source cylinderToCell;
+        sourceInfo
+        {
+            p1       (0 0 -1); // start point on cylinder axis
+            p2       (0 0 1);   // end point on cylinder axis
+            radius   0.05;
+        }
+    }
+
+    // Create a copy of rotatingCells ...
+    {
+        name    staticCells;
+        type    cellSet;
+        action  new;
+        source  cellToCell;
+        sourceInfo
+        {
+            set rotatingCells;
+        }
+    }
+
+    // ... then invert it to get the staticCells
+    {
+        name    staticCells;
+        type    cellSet;
+        action  invert;
+    }
+
+    // Get all faces in the rotatingCells cellSet
+    {
+        name    AMIFaces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        sourceInfo
+        {
+            set     rotatingCells;
+            option  all;
+        }
+    }
+
+    // Create the union of faces in rotatingCells and staticCells
+    {
+        name    AMIFaces;
+        type    faceSet;
+        action  subset;
+        source  cellToFace;
+        sourceInfo
+        {
+            set     staticCells;
+            option  all;
+        }
+    }
+
+    // Create a faceZone from the faceSet
+    {
+        name    AMI;
+        type    faceZoneSet;
+        action  new;
+        source  setsToFaceZone;
+        sourceInfo
+        {
+            faceSet     AMIFaces;
+            cellSet     rotatingCells;
+        }
+    }
+
+    // Use the rotatingCells to create a cellZone called rotatingZone
+    {
+        name    rotatingZone;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        sourceInfo
+        {
+            set rotatingCells;
+        }
+    }
+);
+
+// ************************************************************************* //
